@@ -1,0 +1,14 @@
+Changelog Theme COMM_AREA ke BMS_CI4
+Tanggal: 27 Juni 2026
+
+Perubahan yang dilakukan untuk menyamakan warna/tema aplikasi:
+1. Membuat file CSS kustom baru di `public/assets/css/custom-theme.css`.
+2. File CSS kustom ini berisi definisi class dan style untuk menyamakan warna dengan `comm_area`, termasuk:
+   - Warna sidebar (background `#23232B`, teks putih).
+   - Warna layout dan center panel (background hitam).
+   - Warna hover dan active tree/menu EasyUI agar serasi.
+   - Warna header dan dropdown menu (transparan dengan aksen putih/biru, background dropdown putih kustom).
+   - Card/Panel dashboard agar selaras dengan tema.
+3. Memanggil `custom-theme.css` di layout utama BMS, yaitu `app/Views/templates/include.php`.
+4. Menghapus block `<style>` inline (hardcode) pada `app/Views/V_home.php` untuk merapikan kode, karena semua style sudah dipindahkan ke `custom-theme.css`.
+5. Semua koneksi database, controller, model, dan struktur alur login tetap asli, murni hanya styling layout/visual yang disesuaikan.

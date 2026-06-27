@@ -1,0 +1,162 @@
+/* Custom Theme CSS matching comm_area */
+/* Added per user request to match layout colors */
+
+/* Layout & Backgrounds */
+.easyui-layout {
+    background-color: black !important;
+    color: white !important;
+}
+.layout-shell {
+    background-color: black !important;
+}
+
+/* Sidebar */
+.sidebar-panel {
+    background-color: #23232B !important;
+    color: #fff !important;
+}
+.sidebar-panel .panel-body {
+    background-color: #23232B !important;
+    color: #fff !important;
+}
+
+/* Sidebar Profile Section */
+.sidebar-profile {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px 16px;
+    background-color: #23232B !important;
+}
+.sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+.sidebar-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    cursor: pointer;
+}
+.sidebar-name {
+    color: #fff;
+    font-size: 14px;
+    line-height: 1.2;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Dropdown Menu */
+#dropdownMenu {
+    display: none;
+    position: absolute;
+    top: 52px;
+    left: 12px;
+    right: 44px;
+    background-color: rgba(255, 255, 255, 0.8) !important;
+    color: black !important;
+    border-radius: 6px !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3) !important;
+    overflow: hidden;
+    z-index: 999;
+}
+#dropdownMenu a {
+    display: block;
+    padding: 10px 12px;
+    color: black !important;
+    text-decoration: none;
+}
+#dropdownMenu a:hover {
+    background-color: rgba(255, 255, 255, 0.8) !important;
+    color: blue !important;
+    border-radius: 6px !important;
+}
+
+/* Logout link */
+.logout-link {
+    color: #fff !important;
+    font-size: 20px;
+    text-decoration: none;
+}
+
+/* Header & Navbar */
+.header {
+    background-color: #23232B !important;
+    color: #fff !important;
+    direction: ltr;
+}
+.header a, .header a:hover {
+    color: #fff !important;
+    line-height: 50px;
+}
+
+/* Tabs & Panels */
+.tabs-header,
+.tabs {
+    background-color: rgba(35,35,43,1) !important; /* #23232B */
+    border-color: #23232B !important;
+}
+.tabs-with-icon {
+    padding-left: 0px !important;
+}
+.combo-panel .panel-body, .panel-body-noheader {
+    background-color: #23232B !important;
+}
+.panel, .combo-p, .panel-htop {
+    background-color: #23232B !important;
+}
+
+/* Center Layout Area */
+.layout-panel-center > .panel-body,
+.tabs-panels {
+    background-color: #fff !important; 
+}
+
+/* Tree / Menu */
+.tree-node,
+.tree-title {
+    color: #fff !important;
+}
+.tree-node-hover {
+    background-color: rgba(255,255,255,0.1) !important;
+    color: #fff !important;
+}
+.tree-node-selected {
+    background-color: rgba(255,255,255,0.2) !important;
+    color: #fff !important;
+}
+
+/* Dashboard / Home Cards */
+.home-card {
+    background: linear-gradient(135deg, #23232B 0%, #3f4a2f 100%) !important;
+    color: #fff !important;
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 18px 40px rgba(35, 35, 43, 0.16);
+}
+.home-grid .home-stat {
+    background-color: #23232B !important;
+    border: 1px solid #333 !important;
+    color: #fff !important;
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+}
+.home-stat .label {
+    color: #aaa !important;
+    font-size: 12px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.home-stat .value {
+    color: #fff !important;
+    font-size: 20px;
+    font-weight: 600;
+}
