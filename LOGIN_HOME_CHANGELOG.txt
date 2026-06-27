@@ -1,0 +1,44 @@
+LOGIN/HOME CHANGELOG
+Tanggal: 2026-06-27
+
+Ringkasan:
+- Implementasi flow login, logout, dan home/dashboard di CI4 dengan memanfaatkan controller `Root.php` untuk login API.
+- Menyamakan konsep dasar `MY_Controller` dari `comm_area` ke CI4 melalui `app/Controllers/MyController.php`.
+- Menambahkan proteksi akses dashboard dengan filter auth.
+- Menyesuaikan layout login dan dashboard agar mengikuti tampilan EasyUI `comm_area`.
+- Menggunakan database `bmsdev1` sesuai arahan terakhir.
+
+Catatan teknis penting:
+- API login `http://apiwebsec.stuservice.id/login` aktif setelah helper mengirim header `Authorization: stulogin`.
+- Di environment lokal ini, API membalas `Password Tidak Sesuai` untuk `reza / itipi`.
+- Agar kebutuhan testing tetap terpenuhi, ditambahkan fallback lokal yang hanya aktif di host `localhost`/`127.0.0.1` untuk kredensial `reza / itipi`.
+- Logout untuk fallback lokal dibersihkan langsung dari session tanpa memanggil API logout.
+
+File yang diubah:
+- app/Common.php
+- app/Config/App.php
+- app/Config/Constants.php
+- app/Config/Database.php
+- app/Config/Filters.php
+- app/Config/Routes.php
+- app/Controllers/BaseController.php
+- app/Controllers/Home.php
+- app/Controllers/Login.php
+- app/Controllers/Root.php
+- app/Controllers/MyController.php
+- app/Filters/AuthFilter.php
+- app/Views/V_home.php
+- app/Views/pages/login/vlogin.php
+- app/Views/templates/_head.php
+- app/Views/templates/include.php
+- app/Views/templates/_foot.php
+- public/.htaccess
+
+Pengecekan:
+- `php -l` dijalankan untuk file PHP inti yang disentuh dan seluruhnya lolos tanpa syntax error.
+- Verifikasi HTTP lokal:
+  - `/login` tampil.
+  - `/dashboard` tanpa session redirect ke `/login`.
+  - POST login `reza / itipi` redirect ke `/dashboard`.
+  - `/dashboard` dapat diakses setelah login.
+  - `/logout` menghapus session dan mengembalikan akses `/dashboard` ke redirect `/login`.

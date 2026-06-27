@@ -4,8 +4,8 @@ namespace App\Controllers;
 
 class Login extends BaseController
 {
-    public function index(): string
+    public function index()
     {
-        return view('welcome_message');
+        return redirect()->to(site_url('login'));
     }
 }
