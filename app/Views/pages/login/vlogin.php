@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Commercial</title>
+    <title>Login | BMS</title>
     <link rel="icon" type="image/png" sizes="16x16" href="<?= base_url('assets/favicon/favicon-16x16.png') ?>">
     <link rel="icon" type="image/png" sizes="32x32" href="<?= base_url('assets/favicon/favicon-32x32.png') ?>">
     <link rel="shortcut icon" href="<?= base_url('assets/favicon/favicon.ico') ?>">
@@ -40,11 +40,11 @@
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
             padding: 34px;
         }
-        .login-box h1 {
+        .login-box h3 {
             margin: 0;
             text-align: center;
             color: #829460;
-            font-size: 28px;
+            /* font-size: 28px; */
             letter-spacing: 0.8px;
         }
         .login-subtitle {
@@ -105,7 +105,7 @@
     <div class="background-container">
         <div class="overlay"></div>
         <div class="login-box">
-            <h1>COMMERCIAL</h1>
+            <h3>BUILDING MANAGEMENT SYSTEM</h3>
             <p class="login-subtitle">Please entry your details</p>
             <form method="post" action="<?= site_url('login/check') ?>">
                 <?= csrf_field() ?>
