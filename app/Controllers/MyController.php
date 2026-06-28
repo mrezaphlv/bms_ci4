@@ -6,6 +6,11 @@ abstract class MyController extends BaseController
 {
     protected function template(string $view, array $data = []): string
     {
+        return view('templates/include', $data). view($view, $data);
+    }
+
+     protected function template_menu(string $view, array $data = []): string
+    {
         return view('templates/_head', $data)
             . view('templates/include', $data)
             . view($view, $data)

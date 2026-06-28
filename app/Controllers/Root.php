@@ -137,6 +137,7 @@ class Root extends BaseController
             ];
 
             $res = apiwebsec('POST', 'login', $dataLogin);
+    
 
             if ($res->status) {
 
@@ -148,10 +149,6 @@ class Root extends BaseController
                 }
 
                 return redirect()->back()->with('error', 'Empty Default Homepage!');
-            }
-
-            if ($this->tryLocalFallback($email, $passwd)) {
-                return redirect()->to(site_url('dashboard'));
             }
 
             return redirect()->back()->with('error', $res->msg ?? 'Login gagal.');
