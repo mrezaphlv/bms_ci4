@@ -137,5 +137,5 @@ define('LINK_QR_WEBSEC','http://websec.stuservice.id/public/qrcode/');
 
 define('URL_IPI_SSO','https://sso.indopasifik.co.id/');
 define('URL_IPI_SSO_FORGOT','https://sso.indopasifik.co.id/forgot_password');
-define('URL_WEBSEC', 'http://localhost/apiwebsec/');
+define('URL_WEBSEC', 'http://localhost/api_websec/');
 define('ID_APPS', 9);

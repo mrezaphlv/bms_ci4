@@ -82,3 +82,33 @@ if (! function_exists('apiwebsec')) {
         }
     }
 }
+
+if (! function_exists('api')) {
+    function api(string $method, string $endpoint, ?array $payload = []): object
+    {
+        return (object) [
+            'status' => false,
+            'msg'    => 'Generic API helper belum dikonfigurasi pada project ini.',
+            'data'   => null,
+        ];
+    }
+}
+
+if (! function_exists('api_json')) {
+    function api_json(string $method, string $endpoint, ?array $payload = []): object
+    {
+        return api($method, $endpoint, $payload);
+    }
+}
+
+if (! function_exists('output_json')) {
+    function output_json(array $payload, int $statusCode = 200): never
+    {
+        service('response')
+            ->setStatusCode($statusCode)
+            ->setJSON($payload)
+            ->send();
+
+        exit;
+    }
+}

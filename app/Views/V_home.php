@@ -138,7 +138,7 @@ document.addEventListener("click", function(e){
     <script>
 function logout() {
         // Redirect ke fungsi logout di controller
-        window.location.href = '<?= site_url('login/logout') ?>';
+        window.location.href = '<?= site_url('logout') ?>';
     }
 $(function(){
         $('#tabs').tabs({
