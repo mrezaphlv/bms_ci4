@@ -78,6 +78,9 @@
         </div>
         <div class="detail-title">Detail Konfirmasi Undangan</div>
         <div>
+            <?php if (($dthead->status ?? '') === 'NEW' && (int) ($akses->can_edit ?? 0) === 1): ?>
+                <a href="<?= site_url('undangan/edit/' . $id) ?>" class="easyui-linkbutton" iconCls="icon-edit">Edit</a>
+            <?php endif; ?>
             <?php if (($dthead->status ?? '') === 'NEW' && (int) ($akses->can_approve ?? 0) === 1): ?>
                 <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="openRejectDialog()">Reject</a>
                 <a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" onclick="openApproveDialog()">Approve</a>
@@ -235,6 +238,13 @@
 </div>
 
 <script>
+    <?php if (session()->getFlashdata('success')): ?>
+        $.messager.alert('Sukses', <?= json_encode(session()->getFlashdata('success')) ?>, 'info');
+    <?php endif; ?>
+    <?php if (session()->getFlashdata('error')): ?>
+        $.messager.alert('Gagal', <?= json_encode(strip_tags((string) session()->getFlashdata('error'))) ?>, 'error');
+    <?php endif; ?>
+
     function easyDateFormatter(date) {
         const d = String(date.getDate()).padStart(2, '0');
         const m = String(date.getMonth() + 1).padStart(2, '0');

@@ -79,6 +79,9 @@
             </div>
             <input id="searchUndangan" class="easyui-searchbox" style="width:280px"
                 data-options="prompt:'Cari no undangan / owner / unit / sales',searcher:doSearchUndangan">
+            <?php if ((int) ($akses->can_create ?? 0) === 1): ?>
+                <a href="<?= site_url('undangan/form') ?>" class="easyui-linkbutton c6" iconCls="icon-add">Tambah Undangan</a>
+            <?php endif; ?>
             <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-reload" onclick="reloadUndanganGrid()">Reload</a>
         </div>
     </div>
@@ -217,6 +220,9 @@
     function actionFormatter(value, row) {
         const links = [];
         links.push('<a class="action-link" href="javascript:void(0)" onclick="openDetail(' + row.id + ')">Detail</a>');
+        if (aksesUndangan.canEdit === 1 && row.status === 'NEW') {
+            links.push('<a class="action-link" href="javascript:void(0)" onclick="openEdit(' + row.id + ')">Edit</a>');
+        }
 
         if (row.status === 'NEW' && aksesUndangan.canApprove === 1) {
             links.push('<a class="action-link" href="javascript:void(0)" onclick="openApprove(' + row.id + ')">Approve</a>');
@@ -237,6 +243,10 @@
 
     function openDetail(id) {
         window.location.href = '<?= site_url('undangan/detail') ?>/' + id;
+    }
+
+    function openEdit(id) {
+        window.location.href = '<?= site_url('undangan/edit') ?>/' + id;
     }
 
     function openApprove(id) {
@@ -337,6 +347,13 @@
     }
 
     $(function () {
+        <?php if (session()->getFlashdata('success')): ?>
+            $.messager.alert('Sukses', <?= json_encode(session()->getFlashdata('success')) ?>, 'info');
+        <?php endif; ?>
+        <?php if (session()->getFlashdata('error')): ?>
+            $.messager.alert('Gagal', <?= json_encode(strip_tags((string) session()->getFlashdata('error'))) ?>, 'error');
+        <?php endif; ?>
+
         $('#dgUndangan').datagrid({
             fit: true,
             height: 520,
