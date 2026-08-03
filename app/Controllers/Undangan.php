@@ -176,6 +176,13 @@ class Undangan extends MyController
         return $this->easyuiGridResponse($this->mundangan->getUnitGrid($this->buildDialogGridParams()));
     }
 
+    public function grid_meterrange_dlg()
+    {
+        $idUtil = (int) $this->request->getPost('id_util');
+
+        return $this->easyuiGridResponse($this->mundangan->getMeterRangeGrid($idUtil));
+    }
+
     protected function buildDialogGridParams(): array
     {
         $post = $this->request->getPost();

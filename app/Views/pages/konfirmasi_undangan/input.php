@@ -274,7 +274,7 @@
                         <tr class="charge-row" data-row-id="<?= $index ?>">
                             <td>
                                 <input type="hidden" class="charge-detail-id" value="<?= esc((string) ($rowObj->id ?? $rowObj->id_dcharge ?? '')) ?>">
-                                <select class="form-select charge-service">
+                                <select class="form-control charge-service">
                                     <option value="">- Pilih -</option>
                                     <?php foreach ($droplist_charge as $item): ?>
                                         <?php $selected = (string) ($rowObj->id_servicecharge ?? $rowObj->s_scharge ?? '') === (string) $item->id ? 'selected' : ''; ?>
@@ -283,7 +283,7 @@
                                 </select>
                             </td>
                             <td>
-                                <select class="form-select charge-tax">
+                                <select class="form-control charge-tax">
                                     <option value="">- Pilih -</option>
                                     <?php foreach ($droplist_pajak as $item): ?>
                                         <?php $selected = (string) ($rowObj->id_pajak ?? $rowObj->s_pajak ?? '') === (string) $item->id ? 'selected' : ''; ?>
@@ -293,7 +293,7 @@
                             </td>
                             <td>
                                 <?php $periodeValue = (string) ($rowObj->periode ?? $rowObj->s_periode ?? ''); ?>
-                                <select class="form-select charge-period">
+                                <select class="form-control charge-period">
                                     <option value="">- Pilih -</option>
                                     <option value="1" <?= $periodeValue === '1' ? 'selected' : '' ?>>1 Bulan</option>
                                     <option value="3" <?= $periodeValue === '3' ? 'selected' : '' ?>>3 Bulan</option>
@@ -362,6 +362,18 @@
         $('.step-card').removeClass('active');
         $('[data-step-pane="' + step + '"]').addClass('active');
         $('[data-step-label="' + step + '"]').addClass('active');
+
+        if (step === 1) {
+            window.setTimeout(function () {
+                initUtilitiesStep();
+            }, 50);
+        }
+    }
+
+    function initUtilitiesStep() {
+        $('#utilTable tbody tr').each(function () {
+            initUtilRow($(this));
+        });
     }
 
     function openOwnerDialog() {
@@ -440,7 +452,9 @@
         );
         const newRow = $('#utilTable tbody tr:last');
         $.parser.parse(newRow.find('td:last'));
-        initUtilRow(newRow);
+        if ($('[data-step-pane="1"]').hasClass('active')) {
+            initUtilRow(newRow);
+        }
     }
 
     function addChargeRow() {
@@ -490,15 +504,33 @@
     function buildMeterRangeGrid(row) {
         const meterRangeInput = row.find('.util-meter-range');
         const selectedMeterRange = String(meterRangeInput.attr('data-selected') || meterRangeInput.val() || '');
+        const shouldDisable = !row.find('.util-select').val();
+
+        if (meterRangeInput.hasClass('combogrid-f')) {
+            if (selectedMeterRange !== '') {
+                meterRangeInput.combogrid('setValue', selectedMeterRange);
+            }
+            if (shouldDisable) {
+                meterRangeInput.combogrid('disable');
+            } else {
+                meterRangeInput.combogrid('enable');
+            }
+            return;
+        }
 
         meterRangeInput.combogrid({
+            width: '100%',
             panelWidth: 420,
+            method: 'post',
+            url: '<?= site_url('undangan/grid-meterrange-dlg') ?>',
+            queryParams: { id_util: 0 },
             idField: 'id_meterrange',
             textField: 'nama',
-            mode: 'local',
             fitColumns: true,
             editable: false,
-            disabled: true,
+            disabled: shouldDisable,
+            panelHeight: 'auto',
+            pagination: false,
             columns: [[
                 {field: 'nama', title: 'Meter Range', width: 220}
             ]]
@@ -515,28 +547,26 @@
         const selectedMeterRange = String(meterRangeInput.attr('data-selected') || meterRangeInput.val() || '');
 
         meterRangeInput.combogrid('clear');
-        meterRangeInput.combogrid('grid').datagrid('loadData', []);
-        meterRangeInput.combogrid('disable');
         if (!utilityId) {
+            meterRangeInput.combogrid('grid').datagrid('loadData', { total: 0, rows: [] });
+            meterRangeInput.combogrid('disable');
             return;
         }
 
-        $.post('<?= site_url('undangan/cari-meterrange') ?>', {id_util: utilityId}, function (res) {
-            const items = (res.meterrange || []).map(function (item) {
-                return {
-                    id_meterrange: item.id_meterrange,
-                    nama: item.nama
-                };
-            });
+        meterRangeInput.combogrid('enable');
+        meterRangeInput.combogrid('grid').datagrid('load', { id_util: utilityId });
 
-            meterRangeInput.combogrid('grid').datagrid('loadData', items);
-            meterRangeInput.combogrid('enable');
-
-            if (selectedMeterRange !== '') {
-                meterRangeInput.combogrid('setValue', selectedMeterRange);
-                meterRangeInput.attr('data-selected', '');
+        meterRangeInput.combogrid('grid').datagrid({
+            onLoadSuccess: function (data) {
+                const rows = data.rows || [];
+                if (selectedMeterRange !== '') {
+                    meterRangeInput.combogrid('setValue', selectedMeterRange);
+                    meterRangeInput.attr('data-selected', '');
+                } else if (rows.length > 0) {
+                    meterRangeInput.combogrid('setText', '');
+                }
             }
-        }, 'json');
+        });
     }
 
     function initUtilRow(row) {
@@ -545,24 +575,28 @@
         const selectedUtility = String(utilInput.val() || '');
         const selectedMeterRange = String(meterRangeInput.attr('data-selected') || meterRangeInput.val() || '');
 
-        utilInput.combobox({
-            valueField: 'id',
-            textField: 'nama',
-            data: utilOptions,
-            editable: false,
-            panelHeight: 'auto',
-            onSelect: function () {
-                meterRangeInput.attr('data-selected', '');
-                loadMeterRange(row);
-            },
-            onChange: function (newValue) {
+        if (!utilInput.hasClass('combobox-f')) {
+            utilInput.combobox({
+                width: '100%',
+                valueField: 'id',
+                textField: 'nama',
+                data: utilOptions,
+                editable: false,
+                panelHeight: 'auto',
+                onSelect: function () {
+                    meterRangeInput.attr('data-selected', '');
+                    loadMeterRange(row);
+                },
+                onChange: function (newValue) {
                 if (!newValue) {
+                    meterRangeInput.attr('data-selected', '');
                     meterRangeInput.combogrid('clear');
-                    meterRangeInput.combogrid('grid').datagrid('loadData', []);
+                    meterRangeInput.combogrid('grid').datagrid('loadData', { total: 0, rows: [] });
                     meterRangeInput.combogrid('disable');
                 }
             }
         });
+        }
 
         buildMeterRangeGrid(row);
 
@@ -570,6 +604,11 @@
             utilInput.combobox('setValue', selectedUtility);
             meterRangeInput.attr('data-selected', selectedMeterRange);
             loadMeterRange(row);
+        } else {
+            utilInput.combobox('clear');
+            meterRangeInput.combogrid('clear');
+            meterRangeInput.combogrid('grid').datagrid('loadData', { total: 0, rows: [] });
+            meterRangeInput.combogrid('disable');
         }
     }
 
@@ -713,10 +752,6 @@
 
         $('#id_unit').on('change', refreshNomorUndangan);
         $('#formUndangan').on('submit', beforeSubmitForm);
-
-        $('#utilTable tbody tr').each(function () {
-            initUtilRow($(this));
-        });
 
         recalcAllChargeRows();
     });

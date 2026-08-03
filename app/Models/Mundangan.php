@@ -373,6 +373,23 @@ class Mundangan extends Model
         ];
     }
 
+    public function getMeterRangeGrid(int $utilityId): array
+    {
+        $rows = $this->db->table('m_meterrange mr')
+            ->select('mr.id AS id_meterrange, rt.nama')
+            ->join('m_rangetype rt', 'mr.id_rangetype = rt.id', 'left')
+            ->where('mr.id_utilities', $utilityId)
+            ->where('mr.flag_id', true)
+            ->orderBy('rt.nama', 'asc')
+            ->get()
+            ->getResult();
+
+        return [
+            'count_all' => count($rows),
+            'data'      => $rows,
+        ];
+    }
+
     public function getChargeCalculation(int $serviceChargeId, int $unitId): ?object
     {
         $service = $this->db->table('m_service_charge')

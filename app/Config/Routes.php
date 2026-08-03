@@ -20,6 +20,7 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
     $routes->post('undangan/grid-sales-dlg', 'Undangan::grid_sales_dlg');
     $routes->post('undangan/grid-owner-dlg', 'Undangan::grid_owner_dlg');
     $routes->post('undangan/grid-unit-dlg', 'Undangan::grid_unit_dlg');
+    $routes->post('undangan/grid-meterrange-dlg', 'Undangan::grid_meterrange_dlg');
     $routes->post('undangan/cari-meterrange', 'Undangan::cariMeterrange');
     $routes->post('undangan/hitung-fee', 'Undangan::hitung_fee');
     $routes->post('undangan/cari-tarif-pajak', 'Undangan::cariTarifPajak');
