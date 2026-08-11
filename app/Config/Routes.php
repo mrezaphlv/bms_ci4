@@ -46,5 +46,13 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
     $routes->post('checklist_engineer/cek-pin', 'Checklist_engineer::cekPin');
     $routes->post('checklist_engineer/approve', 'Checklist_engineer::approveChecklist');
     $routes->post('checklist_engineer/reject', 'Checklist_engineer::rejectChecklist');
-    $routes->post('checklist_engineer/add-item', 'Checklist_engineer::addnewItem');
-});
+     $routes->post('checklist_engineer/add-item', 'Checklist_engineer::addnewItem');
+     $routes->get('kirim_undangan', 'Kirim_undangan::index');
+     $routes->post('kirim_undangan/grid', 'Kirim_undangan::grid');
+     $routes->get('kirim_undangan/detail/(:num)', 'Kirim_undangan::detail/$1');
+     $routes->post('kirim_undangan/submitConfirm', 'Kirim_undangan::submitConfirm');
+     $routes->post('kirim_undangan/load_reconfirm', 'Kirim_undangan::load_reconfirm');
+     $routes->post('kirim_undangan/kirimEmail', 'Kirim_undangan::kirimEmail');
+     $routes->get('kirim_undangan/printFileEmail/(:num)', 'Kirim_undangan::printFileEmail/$1');
+     $routes->get('kirim_undangan/download-file-ppjb/(:num)', 'Kirim_undangan::download_file_ppjb/$1');
+  });

@@ -3,37 +3,35 @@
 namespace App\Controllers;
 
 use App\Models\Mkirim_undangan;
-use CodeIgniter\HTTP\RequestInterface;
-use CodeIgniter\HTTP\ResponseInterface;
-use Psr\Log\LoggerInterface;
 use stdClass;
 
-class Kirim_undangan extends BaseController
+class Kirim_undangan extends MyController
 {
     protected $mkirim_undangan;
     protected $db;
     protected $session;
 
-    public function initController(
-        RequestInterface $request,
-        ResponseInterface $response,
-        LoggerInterface $logger
-    ) {
-        parent::initController($request, $response, $logger);
-
+    public function __construct()
+    {
+        parent::__construct();
         $this->db = \Config\Database::connect();
         $this->session = session();
         $this->mkirim_undangan = new Mkirim_undangan();
     }
-	public function index()
-	{
-	   // print_r($this->akses);die();
-	    if($this->akses->can_view == 1){
-	       $this->template('pages/kirim_undangan/vkirim_undangan',NULL); 
-	    }
-		
-	}
-	function grid(){
+
+    public function index()
+    {
+        if (($this->akses->can_view ?? 0) != 1) {
+            return redirect()->to(site_url('dashboard'))->with('error', 'Anda tidak memiliki akses ke modul Kirim Undangan.');
+        }
+
+        return $this->template('pages/kirim_undangan/vkirim_undangan', [
+            'akses' => $this->akses,
+        ]);
+    }
+
+    public function grid()
+    {
         // print_r($this->request->getPost());die();
         $post = $this->request->getPost();
         $fp = array('draw' => $post['draw'] ,'start' => $post['start'], 'search' => $post['search'],'length' => $post['length'], 'tb_checkbox' => $this->request->getPost('tb_checkbox'));
@@ -49,23 +47,27 @@ class Kirim_undangan extends BaseController
         );
         return $this->response->setJSON($callback);
     }
-    function convert_array(){
+
+    public function convert_array()
+    {
         return $this->response->setJSON($this->request->getPost());
     }
 
-    function getEdit(){
+    public function getEdit()
+    {
         $id = $this->request->getPost('id');
         $fp = array('id'=> $id);
         $res = api('POST','meterid/getEdit',$fp);
         return $this->response->setJSON($res);
     }
-    function form($id = null)
+
+    public function form($id = null)
     {
         $data = array('status' => false,'dthead' => NULL,'dtutil' => array(),'dtcharge' => array());
         if(empty($id)){
             if($this->akses->can_create == 1){
-               $this->template('pages/konfirmasi_undangan/input',$data); 
-            }    
+                return $this->template('pages/konfirmasi_undangan/input', $data + ['akses' => $this->akses]);
+            }
         }else{
             if($this->akses->can_edit == 1){
                 $result = api('POST', 'undangan/getEdit', array('id' => $id));
@@ -76,105 +78,131 @@ class Kirim_undangan extends BaseController
                     $data['dtutil'] = $result->data->util;
                     $data['dtcharge'] = $result->data->charge;
                 }
-               $this->template('pages/konfirmasi_undangan/input',$data); 
-            }  
+                return $this->template('pages/konfirmasi_undangan/input', $data + ['akses' => $this->akses]);
+            }
         }
 
+        return redirect()->to(site_url('kirim_undangan'));
     }
-    function detail($id){
-        if($this->akses->can_edit == 1){
-                // $result = api('POST', 'kirim_undangan/getDetail', array('id' => $id));
-                $result = $this->mkirim_undangan->getDetail($id);
-                $data['status'] = $result->status;
-                // print_r($result->data->head);die();
-                if($result->status == true){
-                    $data['dthead'] = $result->data->head;
-                    $data['dtutil'] = $result->data->util;
-                    $data['dtcharge'] = $result->data->charge;
-                    $data['citem'] = $result->data->citem;
-                    // $data['ctenant'] = $result->data->ctenant;
-                    $data['demail'] = $result->demail;
-                }
-                $data['id'] = $id;
-                $data['id_checklist'] = $result->data->head->id_checklist;
-               $this->template('pages/kirim_undangan/vdetail',$data); 
-            } 
+
+    public function detail($id)
+    {
+        if (($this->akses->can_view ?? 0) != 1) {
+            return redirect()->to(site_url('dashboard'))->with('error', 'Akses ditolak.');
+        }
+
+        $result = $this->mkirim_undangan->getDetail($id);
+        if (($result->status ?? false) !== true || empty($result->data?->head)) {
+            return redirect()->to(site_url('kirim_undangan'))->with('error', 'Data kirim undangan tidak ditemukan.');
+        }
+
+        $data['status'] = $result->status;
+        $data['dthead'] = $result->data->head;
+        $data['dtutil'] = $result->data->util;
+        $data['dtcharge'] = $result->data->charge;
+        $data['citem'] = $result->data->citem;
+        $data['demail'] = $result->demail;
+        $data['id'] = $id;
+        $data['id_checklist'] = $result->data->head->id_checklist;
+        $data['akses'] = $this->akses;
+
+        return $this->template('pages/kirim_undangan/vdetail', $data);
     }
-    function input($id = null)
+
+    public function input($id = null)
     {
         if(empty($id)){
             if($this->akses->can_create == 1){
-               $this->template('pages/konfirmasi_undangan/input/step_1',NULL); 
-            }    
-        }  
+                return $this->template('pages/konfirmasi_undangan/input/step_1', ['akses' => $this->akses]);
+            }
+        }
+
+        return redirect()->to(site_url('kirim_undangan'));
     }
-    function input_2($id = null)
+
+    public function input_2($id = null)
     {
         if(empty($id)){
             if($this->akses->can_create == 1){
-               $this->template('pages/konfirmasi_undangan/input/step_2',NULL); 
-            }    
-        }  
+                return $this->template('pages/konfirmasi_undangan/input/step_2', ['akses' => $this->akses]);
+            }
+        }
+
+        return redirect()->to(site_url('kirim_undangan'));
     }
-    function input_3($id = null)
+
+    public function input_3($id = null)
     {
         if(empty($id)){
             if($this->akses->can_create == 1){
-               $this->template('pages/konfirmasi_undangan/input/step_3',NULL); 
-            }    
-        }  
+                return $this->template('pages/konfirmasi_undangan/input/step_3', ['akses' => $this->akses]);
+            }
+        }
+
+        return redirect()->to(site_url('kirim_undangan'));
     }
-    function updateData(){
+
+    public function updateData()
+    {
         $id = $this->request->getPost('id');
         $fp = array( 'updated_date' => date('Y-m-d H:i:s'),'updated_user' => $this->session->get('id_user'),'kode' => $this->request->getPost('kode'),'start_meter' => $this->request->getPost('start_meter'),'utilities' => $this->request->getPost('utilities'),'id' => $id);
         $res = api('POST','meterid/updateData',$fp);
         return $this->response->setJSON($res);
     }
-    function hapusData(){
+    public function hapusData()
+    {
         $id = $this->request->getPost('id');
         $fp = array('id'=>$id,'updated_user' => $this->session->get('id_user'), 'updated_date' => date('Y-m-d H:i:s'), 'flag_id' => false);
         $res = api('POST','range_type/hapusData',$fp);
         return $this->response->setJSON($res);
     }
-    function saveNewData(){
+    public function saveNewData()
+    {
         $fp = array( 'created_user' => $this->session->get('id_user'),'kode' => $this->request->getPost('kode'),'start_meter' => $this->request->getPost('start_meter'),'utilities' => $this->request->getPost('utilities'));
         $res = api('POST','meterid/saveNewData',$fp);
         return $this->response->setJSON($res);
     }
-    function softDelete(){
+    public function softDelete()
+    {
         $id = $this->request->getPost('id');
         $fp = array('id' => $id,
         'updated_user' => $this->session->get('id_user'), 'updated_date' => date('Y-m-d H:i:s'));
         $response = api('POST','meterid/softDelete',$fp);
         return $this->response->setJSON($response);
     }
-    function cariMeterrange(){
+    public function cariMeterrange()
+    {
         $id_util = $this->request->getPost('id_util');
         $fp = array('id_util' => $id_util);
         $response = api('POST','undangan/cariMeterrange',$fp);
         return $this->response->setJSON($response);
     }
-    function hitung_fee(){
+    public function hitung_fee()
+    {
         $fp = array('id_scharge' => $this->request->getPost('id_scharge'), 'id_unit' => $this->request->getPost('id_unit'));
         $response = api('POST','undangan/cariScharge',$fp);
         return $this->response->setJSON($response);
     }
-    function cariTarifPajak(){
+    public function cariTarifPajak()
+    {
         $id = $this->request->getPost('id');
         $response = api('POST','undangan/cariTarifPajak',array('id' => $id));
         return $this->response->setJSON($response);
     }
-    function saveUndangan(){
+    public function saveUndangan()
+    {
         $fp = array('no_undangan' => $this->request->getPost('no_undangan'),'order_date' => $this->request->getPost('order_date'),'accept_date' => $this->request->getPost('accept_date'), 'id_owner' => $this->request->getPost('id_owner'),'id_unit' => $this->request->getPost('id_unit'), 'id_sales' => $this->request->getPost('id_sales'), 'charge' => $this->request->getPost('charge'),'utilities' => $this->request->getPost('utilities'),'created_date' => date('Y-m-d H:i:s'),'created_user' => $this->session->get('id_user'));
         $response = api_json('POST','undangan/saveNewData', $fp);
         return $this->response->setJSON($response);
     }
-    function updateUndangan(){
+    public function updateUndangan()
+    {
         $fp = array('id_undangan' => $this->request->getPost('id_undangan'),'no_undangan' => $this->request->getPost('no_undangan'),'order_date' => $this->request->getPost('order_date'),'accept_date' => $this->request->getPost('accept_date'), 'id_owner' => $this->request->getPost('id_owner'),'id_unit' => $this->request->getPost('id_unit'), 'id_sales' => $this->request->getPost('id_sales'), 'charge' => $this->request->getPost('charge'),'utilities' => $this->request->getPost('utilities'),'updated_date' => date('Y-m-d H:i:s'),'updated_user' => $this->session->get('id_user'),'dcharge_deleted' => $this->request->getPost('dcharge_deleted'), 'dutil_deleted' => $this->request->getPost('dutil_deleted'));
         $response = api_json('POST','undangan/updateData', $fp);
         return $this->response->setJSON($response);
     }
-    function cekPin(){
+    public function cekPin()
+    {
         // $fp = array('id_user' => $this->session->get('id_user'));
         if(md5($this->request->getPost('pin')) == $this->session->get('pin')){
             $ret = array('status' => true, 'msg' => 'Pin Benar');
@@ -183,7 +211,8 @@ class Kirim_undangan extends BaseController
         }
         return $this->response->setJSON($ret);
     }
-    function approveUndangan(){
+    public function approveUndangan()
+    {
         $ret = array('status'=> false,'msg' => '');
 
         if(md5($this->request->getPost('pin')) == $this->session->get('pin')){
@@ -232,7 +261,8 @@ class Kirim_undangan extends BaseController
 
         return $this->response->setJSON($ret);
     }
-    function rejectUndangan(){
+    public function rejectUndangan()
+    {
         // $ret = array('status'=> false,'msg' => '');
         $ret = new stdClass();
         $ret->status = false;
@@ -246,7 +276,8 @@ class Kirim_undangan extends BaseController
         
         return $this->response->setJSON($ret);
     }
-    function download_file_ppjb($id){
+    public function download_file_ppjb($id)
+    {
         $ret = api('POST','undangan/getFileppjb',array('id' => $id));
 
         if (
@@ -271,7 +302,8 @@ class Kirim_undangan extends BaseController
             ->download($file_path, null)
             ->setFileName(basename($file_path));
     }
-    function kirimEmail(){
+    public function kirimEmail()
+    {
         $id = $this->request->getPost('id');
         $fp = array('id' => $id);
         $dataEmail = api('POST','kirim_undangan/dataEmail',$fp);
@@ -377,7 +409,8 @@ class Kirim_undangan extends BaseController
         return $this->response->setJSON($in);
     }
     
-    function submitConfirm(){
+    public function submitConfirm()
+    {
         // print_r($this->request->getPost());
 		
         $fp = array(
@@ -401,7 +434,8 @@ class Kirim_undangan extends BaseController
         return $this->response->setJSON($res);
     }
     
-    function printFileEmail($id){
+    public function printFileEmail($id)
+    {
         $fp = array('id' => $id);
         $dataEmail = api('POST','kirim_undangan/dataEmail',$fp);
         // print_r($dataEmail);die();
@@ -486,7 +520,8 @@ class Kirim_undangan extends BaseController
         cetak_delete_dokumen($dir.'/'.$namafilenew.'.pdf');
     }
  
-    function printFileEmail_bck($id){
+    public function printFileEmail_bck($id)
+    {
         $fp = array('id' => $id);
         $dataEmail = api('POST','kirim_undangan/dataEmail',$fp);
         // print_r($dataEmail);
@@ -544,7 +579,8 @@ class Kirim_undangan extends BaseController
         shell_exec($command2." > debug2.log 2>&1");
         cetak_delete_dokumen('dokumen_undangan/'.$namafilenew.'.pdf');
     }
-    function load_reconfirm(){
+    public function load_reconfirm()
+    {
         $id = $this->request->getPost('id');
         $x = $this->db->query(
             "select id, waktu_hadir,
