@@ -358,18 +358,10 @@ class Mundangan extends Model
             ->get()
             ->getResult();
 
-        $meterid = $this->db->table('m_meterid')
-            ->select('id, kode')
-            ->where('id_utilities', $utilityId)
-            ->where('flag_id', true)
-            ->orderBy('kode', 'asc')
-            ->get()
-            ->getResult();
-
         return [
             'status'     => true,
             'meterrange' => $meterrange,
-            'meterid'    => $meterid,
+            'meterid'    => [],
         ];
     }
 
@@ -586,10 +578,40 @@ class Mundangan extends Model
 
     public function approveUndangan(int $id, array $data): bool
     {
-        return (bool) $this->db->table('t_agreement')
+        $this->db->transBegin();
+
+        $saved = (bool) $this->db->table('t_agreement')
             ->where('id', $id)
             ->where('status', 'NEW')
             ->update($data);
+
+        if ($saved) {
+            $exists = $this->db->table('t_checklist')
+                ->where('id_agreement', $id)
+                ->where('tipe', 'ENGINEERING')
+                ->where('flag_id', true)
+                ->countAllResults();
+
+            if ($exists === 0) {
+                $this->db->table('t_checklist')->insert([
+                    'id_agreement' => $id,
+                    'tipe'         => 'ENGINEERING',
+                    'status'       => 'NEW',
+                    'created_date' => $data['updated_date'] ?? date('Y-m-d H:i:s'),
+                    'created_user' => $data['updated_user'] ?? null,
+                    'flag_id'      => true,
+                ]);
+            }
+        }
+
+        if ($this->db->transStatus() === false) {
+            $this->db->transRollback();
+            return false;
+        }
+
+        $this->db->transCommit();
+
+        return $saved;
     }
 
     public function rejectUndangan(int $id, array $data): bool

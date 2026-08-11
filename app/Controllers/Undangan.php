@@ -178,7 +178,7 @@ class Undangan extends MyController
 
     public function grid_meterrange_dlg()
     {
-        $idUtil = (int) $this->request->getPost('id_util');
+        $idUtil = (int) ($this->request->getPost('id_utilities') ?? $this->request->getPost('id_util'));
 
         return $this->easyuiGridResponse($this->mundangan->getMeterRangeGrid($idUtil));
     }
@@ -243,7 +243,7 @@ class Undangan extends MyController
 
     public function cariMeterrange()
     {
-        $idUtil = (int) $this->request->getPost('id_util');
+        $idUtil = (int) ($this->request->getPost('id_utilities') ?? $this->request->getPost('id_util'));
 
         return $this->response->setJSON($this->mundangan->getMeterRangeByUtility($idUtil));
     }

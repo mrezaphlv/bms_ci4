@@ -35,4 +35,16 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
     $routes->post('undangan/get-ppjb', 'Undangan::getPpjb');
     $routes->get('undangan/view-file-ppjb/(:num)', 'Undangan::view_file_ppjb/$1');
     $routes->get('undangan/download-file-ppjb/(:num)', 'Undangan::download_file_ppjb/$1');
+    $routes->get('checklist_engineer', 'Checklist_engineer::index');
+    $routes->post('checklist_engineer/grid', 'Checklist_engineer::grid');
+    $routes->get('checklist_engineer/input/(:num)', 'Checklist_engineer::input/$1');
+    $routes->get('checklist_engineer/view/(:num)', 'Checklist_engineer::view/$1');
+    $routes->get('checklist_engineer/edit/(:num)', 'Checklist_engineer::edit/$1');
+    $routes->get('checklist_engineer/detailUndangan/(:num)', 'Checklist_engineer::detailUndangan/$1');
+    $routes->post('checklist_engineer/save', 'Checklist_engineer::saveChecklist');
+    $routes->post('checklist_engineer/update', 'Checklist_engineer::updateChecklist');
+    $routes->post('checklist_engineer/cek-pin', 'Checklist_engineer::cekPin');
+    $routes->post('checklist_engineer/approve', 'Checklist_engineer::approveChecklist');
+    $routes->post('checklist_engineer/reject', 'Checklist_engineer::rejectChecklist');
+    $routes->post('checklist_engineer/add-item', 'Checklist_engineer::addnewItem');
 });

@@ -1,6 +1,20 @@
 <style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
     .undangan-wrap {
         padding: 18px 22px;
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 36px);
+        box-sizing: border-box;
+    }
+    #dgUndangan {
+        flex: 1;
+        min-height: 0;
     }
     .undangan-title {
         font-size: 24px;
@@ -354,9 +368,20 @@
             $.messager.alert('Gagal', <?= json_encode(strip_tags((string) session()->getFlashdata('error'))) ?>, 'error');
         <?php endif; ?>
 
+        function getGridHeight() {
+            var wrap = $('.undangan-wrap');
+            var toolbar = $('#toolbarUndangan');
+            var title = wrap.find('.undangan-title');
+            var subtitle = wrap.find('.undangan-subtitle');
+            var summary = wrap.find('.summary-box');
+            var used = toolbar.outerHeight(true) + title.outerHeight(true) + subtitle.outerHeight(true) + summary.outerHeight(true);
+            var padding = parseInt(wrap.css('padding-top')) + parseInt(wrap.css('padding-bottom'));
+            return $(window).height() - used - padding - 10;
+        }
+
         $('#dgUndangan').datagrid({
-            fit: true,
-            height: 520,
+            fit: false,
+            height: getGridHeight(),
             method: 'post',
             url: '<?= site_url('undangan/grid') ?>',
             toolbar: '#toolbarUndangan',
@@ -392,6 +417,10 @@
 
         $('.status-check').on('change', function () {
             reloadUndanganGrid();
+        });
+
+        $(window).on('resize', function () {
+            $('#dgUndangan').datagrid('resize', {height: getGridHeight()});
         });
 
         $('#approve_ppjb_file').on('change', function () {

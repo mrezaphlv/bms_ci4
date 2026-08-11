@@ -235,7 +235,6 @@
                                     value="<?= esc((string) ($rowObj->id_meterrange ?? $rowObj->s_meterrange ?? '')) ?>"
                                     data-selected="<?= esc((string) ($rowObj->id_meterrange ?? $rowObj->s_meterrange ?? '')) ?>"
                                     data-selected-text="<?= esc((string) ($rowObj->nama_rangetype ?? '')) ?>"
-                                    <?= empty($rowObj->id_utilities ?? $rowObj->s_util ?? '') ? 'disabled' : '' ?>
                                     style="width:100%">
                             </td>
                             <td style="text-align:center">
@@ -446,7 +445,7 @@
         $('#utilTable tbody').append(
             '<tr class="util-row">' +
                 '<td><input type="hidden" class="util-detail-id" value=""><input type="text" class="util-select" style="width:100%"></td>' +
-                '<td><input type="text" class="util-meter-range" disabled style="width:100%"></td>' +
+                '<td><input type="text" class="util-meter-range" data-selected="" style="width:100%"></td>' +
                 '<td style="text-align:center"><a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-remove" onclick="removeUtilRow(this)">Hapus</a></td>' +
             '</tr>'
         );
@@ -503,17 +502,11 @@
 
     function buildMeterRangeGrid(row) {
         const meterRangeInput = row.find('.util-meter-range');
-        const selectedMeterRange = String(meterRangeInput.attr('data-selected') || meterRangeInput.val() || '');
-        const shouldDisable = !row.find('.util-select').val();
+        const selectedMeterRange = String(meterRangeInput.attr('data-selected') || meterRangeInput.val() || '').trim();
 
         if (meterRangeInput.hasClass('combogrid-f')) {
             if (selectedMeterRange !== '') {
                 meterRangeInput.combogrid('setValue', selectedMeterRange);
-            }
-            if (shouldDisable) {
-                meterRangeInput.combogrid('disable');
-            } else {
-                meterRangeInput.combogrid('enable');
             }
             return;
         }
@@ -521,14 +514,10 @@
         meterRangeInput.combogrid({
             width: '100%',
             panelWidth: 420,
-            method: 'post',
-            url: '<?= site_url('undangan/grid-meterrange-dlg') ?>',
-            queryParams: { id_util: 0 },
             idField: 'id_meterrange',
             textField: 'nama',
             fitColumns: true,
             editable: false,
-            disabled: shouldDisable,
             panelHeight: 'auto',
             pagination: false,
             columns: [[
@@ -544,28 +533,38 @@
     function loadMeterRange(row) {
         const utilityId = row.find('.util-select').combobox('getValue');
         const meterRangeInput = row.find('.util-meter-range');
-        const selectedMeterRange = String(meterRangeInput.attr('data-selected') || meterRangeInput.val() || '');
+        const selectedMeterRange = String(meterRangeInput.attr('data-selected') || meterRangeInput.val() || '').trim();
 
         meterRangeInput.combogrid('clear');
         if (!utilityId) {
             meterRangeInput.combogrid('grid').datagrid('loadData', { total: 0, rows: [] });
-            meterRangeInput.combogrid('disable');
+            meterRangeInput.attr('data-selected', '');
             return;
         }
 
-        meterRangeInput.combogrid('enable');
-        meterRangeInput.combogrid('grid').datagrid('load', { id_util: utilityId });
+        $.post('<?= site_url('undangan/cari-meterrange') ?>', {id_utilities: utilityId}, function (res) {
+            const rows = Array.isArray(res.meterrange) ? res.meterrange : [];
+            const selectedRow = rows.find(function (item) {
+                return String(item.id_meterrange) === selectedMeterRange;
+            }) || null;
 
-        meterRangeInput.combogrid('grid').datagrid({
-            onLoadSuccess: function (data) {
-                const rows = data.rows || [];
-                if (selectedMeterRange !== '') {
-                    meterRangeInput.combogrid('setValue', selectedMeterRange);
-                    meterRangeInput.attr('data-selected', '');
-                } else if (rows.length > 0) {
-                    meterRangeInput.combogrid('setText', '');
-                }
+            meterRangeInput.combogrid('grid').datagrid('loadData', {
+                total: rows.length,
+                rows: rows
+            });
+
+            if (selectedMeterRange !== '' && selectedRow) {
+                meterRangeInput.combogrid('setValue', selectedMeterRange);
+                meterRangeInput.combogrid('setText', selectedRow.nama || '');
+            } else {
+                meterRangeInput.combogrid('clear');
             }
+
+            meterRangeInput.attr('data-selected', '');
+        }, 'json').fail(function () {
+            meterRangeInput.combogrid('grid').datagrid('loadData', { total: 0, rows: [] });
+            meterRangeInput.combogrid('clear');
+            meterRangeInput.attr('data-selected', '');
         });
     }
 
@@ -583,32 +582,40 @@
                 data: utilOptions,
                 editable: false,
                 panelHeight: 'auto',
-                onSelect: function () {
+                onChange: function (newValue, oldValue) {
+                    if (row.data('skip-util-change') === true) {
+                        return;
+                    }
+
                     meterRangeInput.attr('data-selected', '');
+
+                    if (!newValue) {
+                        meterRangeInput.combogrid('clear');
+                        meterRangeInput.combogrid('grid').datagrid('loadData', { total: 0, rows: [] });
+                        return;
+                    }
+
+                    if (String(newValue) !== String(oldValue || '')) {
+                        meterRangeInput.combogrid('clear');
+                    }
+
                     loadMeterRange(row);
-                },
-                onChange: function (newValue) {
-                if (!newValue) {
-                    meterRangeInput.attr('data-selected', '');
-                    meterRangeInput.combogrid('clear');
-                    meterRangeInput.combogrid('grid').datagrid('loadData', { total: 0, rows: [] });
-                    meterRangeInput.combogrid('disable');
                 }
-            }
-        });
+            });
         }
 
         buildMeterRangeGrid(row);
 
         if (selectedUtility !== '') {
+            row.data('skip-util-change', true);
             utilInput.combobox('setValue', selectedUtility);
+            row.removeData('skip-util-change');
             meterRangeInput.attr('data-selected', selectedMeterRange);
             loadMeterRange(row);
         } else {
             utilInput.combobox('clear');
             meterRangeInput.combogrid('clear');
             meterRangeInput.combogrid('grid').datagrid('loadData', { total: 0, rows: [] });
-            meterRangeInput.combogrid('disable');
         }
     }
 
