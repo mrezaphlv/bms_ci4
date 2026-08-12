@@ -32,20 +32,47 @@ class Kirim_undangan extends MyController
 
     public function grid()
     {
-        // print_r($this->request->getPost());die();
         $post = $this->request->getPost();
-        $fp = array('draw' => $post['draw'] ,'start' => $post['start'], 'search' => $post['search'],'length' => $post['length'], 'tb_checkbox' => $this->request->getPost('tb_checkbox'));
-        $index_col_order = $post['order'][0]['column'];
-        $fp['order'] = ['dir' => $post['order'][0]['dir'], 'column' => $post['columns'][$index_col_order]['data']];
-        // $result = api_json('POST', 'kirim_undangan/grid', $fp);
+        $page = max(1, (int) ($post['page'] ?? 1));
+        $rows = max(1, (int) ($post['rows'] ?? ($post['length'] ?? 10)));
+        $start = isset($post['start']) ? (int) $post['start'] : (($page - 1) * $rows);
+
+        $searchValue = '';
+        if (isset($post['search']['value'])) {
+            $searchValue = (string) $post['search']['value'];
+        } elseif (isset($post['search_value'])) {
+            $searchValue = (string) $post['search_value'];
+        } elseif (isset($post['q'])) {
+            $searchValue = (string) $post['q'];
+        }
+
+        $orderColumn = (string) ($post['sort'] ?? 'id');
+        $orderDir = (string) ($post['order'] ?? 'desc');
+
+        if (isset($post['order'][0]['column'])) {
+            $indexColOrder = $post['order'][0]['column'];
+            $orderColumn = (string) ($post['columns'][$indexColOrder]['field'] ?? $post['columns'][$indexColOrder]['data'] ?? 'id');
+            $orderDir = (string) ($post['order'][0]['dir'] ?? 'desc');
+        }
+
+        $fp = [
+            'draw' => $post['draw'] ?? 0,
+            'start' => $start,
+            'search' => ['value' => trim($searchValue)],
+            'length' => $rows,
+            'tb_checkbox' => $this->request->getPost('tb_checkbox') ?? [],
+            'order' => [
+                'dir' => strtolower($orderDir) === 'asc' ? 'asc' : 'desc',
+                'column' => $orderColumn !== '' ? $orderColumn : 'id',
+            ],
+        ];
+
         $result = $this->mkirim_undangan->grid($fp);
-        $callback = array(
-            'draw' => $this->request->getPost('draw'), // Ini dari datatablenya    
-            'recordsTotal' => $result->count_all,
-            'recordsFiltered' => $result->count_all,
-            'data' => $result->data
-        );
-        return $this->response->setJSON($callback);
+
+        return $this->response->setJSON([
+            'total' => $result->count_all ?? 0,
+            'rows' => $result->data ?? [],
+        ]);
     }
 
     public function convert_array()
