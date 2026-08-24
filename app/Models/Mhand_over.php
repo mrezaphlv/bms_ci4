@@ -9,6 +9,120 @@ use stdClass;
 class Mhand_over extends Model
 {
     protected $DBGroup = 'default';
+
+    public function grid(array $inp): array
+    {
+        $offset = max(0, (int) ($inp['offset'] ?? 0));
+        $limit  = max(1, (int) ($inp['limit'] ?? 20));
+        $status = strtoupper((string) ($inp['status'] ?? ''));
+        $search = trim((string) ($inp['search'] ?? ''));
+
+        $where = '';
+        if ($search !== '') {
+            $searchEsc = str_replace("'", "''", $search);
+            $lowSearchEsc = str_replace("'", "''", strtolower($search));
+            $upSearchEsc = str_replace("'", "''", strtoupper($search));
+            $where .= " and (
+                lower(a.no_undangan) like '%{$lowSearchEsc}%'
+                OR lower(b.nama) like '%{$lowSearchEsc}%'
+                OR lower(aa.no_pinjam_pakai) like '%{$lowSearchEsc}%'
+                OR lower(mu.kode_unit) like '%{$lowSearchEsc}%'
+                OR lower(aa.no_agreement) like '%{$lowSearchEsc}%'
+                OR upper(aa.status_bayar::text) like '%{$upSearchEsc}%'
+                OR TO_CHAR(aa.handover_date, 'DD-MM-YYYY') like '%{$searchEsc}%'
+            ) ";
+        }
+
+        $whereFilter = '';
+        if ($status === 'NEW') {
+            $whereFilter = " WHERE (aa.id_agreement is null) ";
+        } elseif ($status === 'SETUP_UTILITIES') {
+            $whereFilter = " WHERE (aa.id_agreement is not null and aa.header_utilities is null) ";
+        } elseif ($status === 'SETUP_CHARGE') {
+            $whereFilter = " WHERE (aa.header_utilities is not null and aa.header_charge is null) ";
+        } elseif ($status === 'DONE') {
+            $whereFilter = " WHERE (aa.id_agreement is not null AND aa.header_utilities is not null AND aa.header_charge is not null) ";
+        } elseif ($status === 'DIALIHKAN') {
+            $whereFilter = " WHERE (aa.id_agreement is not null AND aa.header_utilities is not null AND aa.header_charge is not null and aa.id_bast_new is not null) ";
+        }
+
+        $allowedSort = [
+            'id' => 'id',
+            'no_agreement' => 'no_agreement',
+            'no_pinjam_pakai' => 'no_pinjam_pakai',
+            'no_undangan' => 'no_undangan',
+            'handover_date' => 'handover_date_sort',
+            'nama_owner' => 'nama_owner',
+            'tipe_tenant' => 'tipe_tenant',
+            'kode_unit' => 'kode_unit',
+            'status_bayar' => 'status_bayar',
+            'diwakilkan' => 'diwakilkan',
+        ];
+
+        $sort = (string) ($inp['sort'] ?? 'id');
+        $orderColumn = $allowedSort[$sort] ?? 'id';
+        $orderDir = strtolower((string) ($inp['order'] ?? 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        $baseQuery = "SELECT
+                md5(a.id::character varying) as mid,
+                a.id,
+                aa.id as id_handover_check,
+                thu.id_header as dutil_check,
+                thc.id_header as dcharge_check,
+                aa.no_agreement,
+                aa.id_agreement,
+                aa.step,
+                tca.id as id_closed_agreement,
+                thu.id_header as header_utilities,
+                thc.id_header as header_charge,
+                a.no_undangan,
+                coalesce(to_char(aa.handover_date,'dd-mm-yyyy'),'-') as handover_date,
+                aa.handover_date as handover_date_sort,
+                a.status,
+                mu.kode_unit,
+                b.nama as nama_owner,
+                a.file_ppjb,
+                aa.status_bayar,
+                aa.id_parent,
+                ab.id as id_checklist,
+                ab.status as status_checklist,
+                a.status as status_agreement,
+                case when a.diwakilkan = true then 'Diwakilkan' else 'Tidak Diwakilkan' end as diwakilkan,
+                mtt.nama as tipe_tenant,
+                aa.no_pinjam_pakai,
+                tha2.id as id_insentive,
+                lbn.id_bast_new,
+                a.waktu_hadir
+            from t_agreement a
+            left join t_checklist ab on a.id=ab.id_agreement and ab.tipe = 'ENGINEERING' and ab.flag_id = true
+            left join th_handover_agreement aa on a.id=aa.id_agreement and aa.flag_id = true and aa.id_owner > 0
+            left join t_closed_agreement tca on tca.id_handover_agreement = aa.id and tca.flag_id = true and tca.status = 'DONE'
+            left join m_tenant b on a.id_owner=b.id
+            left join m_sales c on a.id_sales=c.id
+            left join m_unit mu on a.id_unit=mu.id
+            left join m_building mb on mu.id_building=mb.id
+            left join (select id_header from td_handover_utilities where flag_id=true group by id_header) thu on aa.id=thu.id_header
+            left join (select id_header from td_handover_charge where flag_id=true group by id_header) thc on aa.id=thc.id_header
+            left join m_tipe_tenant mtt on b.id_tipe = mtt.id
+            left join th_handover_agreement tha2 on aa.id=tha2.id_parent and tha2.flag_id = true
+            left join log_bast_nonaktif lbn on aa.id = lbn.id_bast
+            where a.flag_id=true
+            and a.status='APPROVED'
+            {$where}";
+
+        $rowCount = $this->db->query("select count(*) as ctr from ({$baseQuery}) as aa {$whereFilter}")->getRow();
+        $total = $rowCount ? (int) $rowCount->ctr : 0;
+
+        $rows = $this->db
+            ->query("select * from ({$baseQuery}) as aa {$whereFilter} order by {$orderColumn} {$orderDir} limit ? offset ?", [$limit, $offset])
+            ->getResult();
+
+        return [
+            'total' => $total,
+            'rows' => $rows,
+        ];
+    }
+
     function addAgreement($id_undangan){
         $qq = "select a.id as id_undangan, a.no_undangan, a.id_unit,mu.kode_unit, a.order_date, a.accept_date, mt.nama as nama_owner, mb.nama as nama_building, ms.nama as nama_sales, a.waktu_hadir from t_agreement a left join m_unit mu on a.id_unit=mu.id left join m_tenant mt on a.id_owner=mt.id left join m_sales ms on a.id_sales=ms.id left join m_building mb on mu.id_building=mb.id where a.id=$id_undangan";
         $x1 = $this->db->query($qq);

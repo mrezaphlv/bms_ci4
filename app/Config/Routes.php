@@ -55,4 +55,19 @@ $routes->group('', ['filter' => 'auth'], static function ($routes) {
      $routes->post('kirim_undangan/kirimEmail', 'Kirim_undangan::kirimEmail');
      $routes->get('kirim_undangan/printFileEmail/(:num)', 'Kirim_undangan::printFileEmail/$1');
      $routes->get('kirim_undangan/download-file-ppjb/(:num)', 'Kirim_undangan::download_file_ppjb/$1');
+    $routes->get('hand_over', 'Hand_over::index');
+    $routes->post('hand_over/grid', 'Hand_over::grid');
+    $routes->post('hand_over/insentive_ppn', 'Hand_over::insentive_ppn');
+    $routes->post('hand_over/input_lunas', 'Hand_over::input_lunas');
+    $routes->post('hand_over/gen_schedule_tagihan', 'Hand_over::gen_schedule_tagihan');
+    $routes->get('hand_over/detail/(:num)', 'Hand_over::detail/$1');
+    $routes->get('hand_over/form/(:num)', 'Hand_over::form/$1');
+    $routes->get('hand_over/form_2/(:num)/(:num)', 'Hand_over::form_2/$1/$2');
+    $routes->get('hand_over/form_3/(:num)/(:num)', 'Hand_over::form_3/$1/$2');
+    $routes->get('hand_over/print_dokumen/(:segment)/(:num)', 'Hand_over::print_dokumen/$1/$2');
+    $routes->get('hand_over/pengalihan_hak/(:num)', 'Hand_over::pengalihan_hak/$1');
+
+     $routes->get('checklist_tenant', 'Checklist_tenant::index');
+     $routes->get('utility_record', 'Utility_record::index');
+     $routes->get('lm_invoice', 'Lm_invoice::index');
   });
